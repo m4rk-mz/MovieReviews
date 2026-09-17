@@ -39,7 +39,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎬"
+            android:text="🫱🏿‍🫲🏾"
             android:textSize="64sp"
             android:layout_marginBottom="5dp" />
 
@@ -47,7 +47,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="MovieReviews"
+            android:text="Mercado Preso"
             android:textColor="@color/navy"
             android:textSize="34sp"
             android:textStyle="bold" />
@@ -72,16 +72,17 @@
             android:textSize="26sp"
             android:textStyle="bold" />
 
+        <!-- Usuario -->
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="30dp"
             android:text="Sign in to continue"
             android:textColor="@color/blue_dark"
-            android:textSize="16sp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="30dp" />
+            android:textSize="16sp" />
 
-        <!-- Usuario -->
         <EditText
             android:id="@+id/usernameInput"
             android:layout_width="match_parent"

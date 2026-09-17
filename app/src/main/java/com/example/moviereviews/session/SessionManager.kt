@@ -1,4 +1,4 @@
-package com.example.moviereviews
+package com.example.moviereviews.session
 
 import android.content.Context
 

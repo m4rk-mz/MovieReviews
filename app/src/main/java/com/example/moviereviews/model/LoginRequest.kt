@@ -1,4 +1,4 @@
-package com.example.moviereviews
+package com.example.moviereviews.model
 
 // Datos que enviamos a la API para iniciar sesión.
 data class LoginRequest(

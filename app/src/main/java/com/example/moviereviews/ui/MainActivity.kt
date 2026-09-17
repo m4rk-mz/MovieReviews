@@ -1,6 +1,5 @@
-package com.example.moviereviews
+package com.example.moviereviews.ui
 
-import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -11,6 +10,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.example.moviereviews.R
+import com.example.moviereviews.api.ApiService
+import com.example.moviereviews.model.LoginRequest
+import com.example.moviereviews.model.LoginResponse
+import com.example.moviereviews.session.RoleManager
+import com.example.moviereviews.session.SessionManager
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
@@ -225,7 +230,7 @@ class MainActivity : AppCompatActivity() {
 
         val connectivityManager =
             getSystemService(
-                Context.CONNECTIVITY_SERVICE
+                CONNECTIVITY_SERVICE
             ) as ConnectivityManager
 
         val network =

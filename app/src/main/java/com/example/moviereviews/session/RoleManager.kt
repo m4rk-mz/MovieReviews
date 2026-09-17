@@ -1,4 +1,4 @@
-package com.example.moviereviews
+package com.example.moviereviews.session
 
 // Se encarga de asignar el rol según el ID del usuario.
 object RoleManager {
