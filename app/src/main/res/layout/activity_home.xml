@@ -129,6 +129,16 @@
         android:textStyle="bold"
         android:layout_marginBottom="10dp" />
 
+    <!-- Filtro por categoría -->
+    <Spinner
+        android:id="@+id/categorySpinner"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginBottom="10dp"
+        android:contentDescription="Seleccionar categoría"
+        android:prompt="@string/category_prompt"
+        android:visibility="gone" />
+
     <!-- Loading -->
     <ProgressBar
         android:id="@+id/loadingProgress"
