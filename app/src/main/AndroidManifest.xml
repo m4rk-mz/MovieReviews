@@ -18,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MovieReviews">
 
+        <!-- Detalle del producto -->
+        <activity android:name=".ui.ProductDetailActivity" />
+
         <!-- Pantalla principal -->
         <activity android:name=".ui.HomeActivity" />
 
