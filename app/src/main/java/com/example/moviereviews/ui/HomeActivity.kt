@@ -358,7 +358,21 @@ class HomeActivity : AppCompatActivity() {
                     ) {
 
                         productsRecyclerView.adapter =
-                            ProductAdapter(products)
+                            ProductAdapter(products) { product ->
+
+                                val intent =
+                                    Intent(
+                                        this@HomeActivity,
+                                        ProductDetailActivity::class.java
+                                    )
+
+                                intent.putExtra(
+                                    "productId",
+                                    product.id
+                                )
+
+                                startActivity(intent)
+                            }
 
                         productsRecyclerView.visibility =
                             View.VISIBLE
