@@ -4,9 +4,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -29,8 +32,10 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var catalogErrorText: TextView
     private lateinit var retryButton: Button
     private lateinit var apiStatusText: TextView
+    private lateinit var categorySpinner: Spinner
 
     private lateinit var api: ApiService
+    private var selectedCategory: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,6 +79,9 @@ class HomeActivity : AppCompatActivity() {
 
         apiStatusText =
             findViewById(R.id.apiStatusText)
+
+        categorySpinner =
+            findViewById(R.id.categorySpinner)
 
         // -------------------------
         // SESIÓN
@@ -135,13 +143,13 @@ class HomeActivity : AppCompatActivity() {
         api =
             retrofit.create(ApiService::class.java)
 
-        // Cargar catálogo
-        loadProducts()
+        // Primero carga las categorías.
+        loadCategories()
 
-        // Botón Reintentar
+        // Reintenta la categoría seleccionada.
         retryButton.setOnClickListener {
 
-            loadProducts()
+            loadProducts(selectedCategory)
         }
 
         // -------------------------
@@ -211,16 +219,182 @@ class HomeActivity : AppCompatActivity() {
     }
 
     // -------------------------
+    // CARGAR CATEGORÍAS
+    // -------------------------
+
+    private fun loadCategories() {
+
+        showLoading()
+
+        api.getCategories()
+            .enqueue(
+                object : Callback<List<String>> {
+
+                    override fun onResponse(
+                        call: Call<List<String>>,
+                        response: Response<List<String>>
+                    ) {
+
+                        val categories =
+                            response.body()
+
+                        if (
+                            response.isSuccessful &&
+                            categories != null
+                        ) {
+
+                            setupCategorySpinner(categories)
+
+                        } else {
+
+                            // El catálogo general puede funcionar
+                            // aunque las categorías fallen.
+                            loadProducts()
+                        }
+                    }
+
+                    override fun onFailure(
+                        call: Call<List<String>>,
+                        t: Throwable
+                    ) {
+
+                        loadProducts()
+                    }
+                }
+            )
+    }
+
+    // -------------------------
+    // PREPARAR FILTRO
+    // -------------------------
+
+    private fun setupCategorySpinner(
+        categories: List<String>
+    ) {
+
+        val options =
+            listOf("Ver todos") + categories
+
+        val adapter =
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_item,
+                options
+            )
+
+        adapter.setDropDownViewResource(
+            android.R.layout.simple_spinner_dropdown_item
+        )
+
+        categorySpinner.adapter = adapter
+        categorySpinner.visibility = View.VISIBLE
+
+        categorySpinner.onItemSelectedListener =
+            object : AdapterView.OnItemSelectedListener {
+
+                override fun onItemSelected(
+                    parent: AdapterView<*>,
+                    view: View?,
+                    position: Int,
+                    id: Long
+                ) {
+
+                    selectedCategory =
+                        if (position == 0) {
+                            null
+                        } else {
+                            options[position]
+                        }
+
+                    loadProducts(selectedCategory)
+                }
+
+                override fun onNothingSelected(
+                    parent: AdapterView<*>
+                ) {
+                    // No se realiza ninguna acción.
+                }
+            }
+    }
+
+    // -------------------------
     // CARGAR PRODUCTOS
     // -------------------------
 
-    private fun loadProducts() {
+    private fun loadProducts(
+        category: String? = null
+    ) {
 
-        // Mostrar Loading
+        showLoading()
+
+        // Limpia los productos anteriores mientras
+        // se realiza la nueva petición.
+        productsRecyclerView.adapter = null
+
+        val request: Call<List<Product>> =
+            if (category == null) {
+                api.getProducts()
+            } else {
+                api.getProductsByCategory(category)
+            }
+
+        request.enqueue(
+            object : Callback<List<Product>> {
+
+                override fun onResponse(
+                    call: Call<List<Product>>,
+                    response: Response<List<Product>>
+                ) {
+
+                    loadingProgress.visibility =
+                        View.GONE
+
+                    val products =
+                        response.body()
+
+                    if (
+                        response.isSuccessful &&
+                        products != null
+                    ) {
+
+                        productsRecyclerView.adapter =
+                            ProductAdapter(products)
+
+                        productsRecyclerView.visibility =
+                            View.VISIBLE
+
+                        apiStatusText.text =
+                            "●  Conectado"
+
+                    } else {
+
+                        showCatalogError()
+                    }
+                }
+
+                override fun onFailure(
+                    call: Call<List<Product>>,
+                    t: Throwable
+                ) {
+
+                    loadingProgress.visibility =
+                        View.GONE
+
+                    showCatalogError()
+                }
+            }
+        )
+    }
+
+    // -------------------------
+    // ESTADO DE CARGA
+    // -------------------------
+
+    private fun showLoading() {
+
         loadingProgress.visibility =
             View.VISIBLE
 
-        // Ocultar error
         catalogErrorText.visibility =
             View.GONE
 
@@ -232,59 +406,6 @@ class HomeActivity : AppCompatActivity() {
 
         apiStatusText.text =
             "●  Conectando..."
-
-        api.getProducts()
-            .enqueue(
-                object : Callback<List<Product>> {
-
-                    override fun onResponse(
-                        call: Call<List<Product>>,
-                        response: Response<List<Product>>
-                    ) {
-
-                        loadingProgress.visibility =
-                            View.GONE
-
-                        if (response.isSuccessful) {
-
-                            val products =
-                                response.body()
-
-                            if (products != null) {
-
-                                // Mostrar catálogo
-                                productsRecyclerView.adapter =
-                                    ProductAdapter(products)
-
-                                productsRecyclerView.visibility =
-                                    View.VISIBLE
-
-                                apiStatusText.text =
-                                    "●  Conectado"
-
-                            } else {
-
-                                showCatalogError()
-                            }
-
-                        } else {
-
-                            showCatalogError()
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<Product>>,
-                        t: Throwable
-                    ) {
-
-                        loadingProgress.visibility =
-                            View.GONE
-
-                        showCatalogError()
-                    }
-                }
-            )
     }
 
     // -------------------------
