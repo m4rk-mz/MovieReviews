@@ -11,7 +11,8 @@ import com.example.moviereviews.R
 import com.example.moviereviews.model.Product
 
 class ProductAdapter(
-    private val products: List<Product>
+    private val products: List<Product>,
+    private val onProductClick: (Product) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) :
@@ -53,11 +54,15 @@ class ProductAdapter(
         holder.title.text = product.title
 
         holder.price.text =
-            "$${String.format("%.2f", product.price)}"
+            "$" + String.format("%.2f", product.price)
 
         Glide.with(holder.itemView.context)
             .load(product.image)
             .into(holder.image)
+
+        holder.itemView.setOnClickListener {
+            onProductClick(product)
+        }
     }
 
     override fun getItemCount(): Int {
