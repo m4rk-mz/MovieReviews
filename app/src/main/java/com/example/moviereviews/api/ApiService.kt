@@ -3,6 +3,8 @@ package com.example.moviereviews.api
 import com.example.moviereviews.model.LoginRequest
 import com.example.moviereviews.model.LoginResponse
 import com.example.moviereviews.model.Product
+import com.example.moviereviews.model.ProductCreateResponse
+import com.example.moviereviews.model.ProductRequest
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -39,6 +41,12 @@ interface ApiService {
     fun getProduct(
         @Path("id") id: Int
     ): Call<Product>
+
+    // Registrar un producto
+    @POST("products")
+    fun createProduct(
+        @Body product: ProductRequest
+    ): Call<ProductCreateResponse>
 
     // Editar un producto
     @PUT("products/{id}")

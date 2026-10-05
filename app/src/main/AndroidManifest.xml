@@ -18,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MovieReviews">
 
+        <!-- Agregar producto -->
+        <activity android:name=".ui.AddProductActivity" />
+
         <!-- Detalle del producto -->
         <activity android:name=".ui.ProductDetailActivity" />
 
