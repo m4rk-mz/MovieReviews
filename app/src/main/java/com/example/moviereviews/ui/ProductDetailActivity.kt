@@ -469,10 +469,16 @@ class ProductDetailActivity : AppCompatActivity() {
         product: Product
     ) {
 
+        // Evita mostrar la confirmación a usuarios sin permisos.
+        if (SessionManager(this).getRole() != "Administrador") {
+            showPermissionError()
+            return
+        }
+
         AlertDialog.Builder(this)
             .setTitle("Eliminar producto")
             .setMessage(
-                "¿Deseas eliminar este producto?"
+                "¿Estás seguro de eliminar este producto?"
             )
             .setNegativeButton(
                 "Cancelar",
@@ -488,6 +494,12 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun deleteProduct(productId: Int) {
+
+        // Segunda validación: no enviar DELETE si el usuario no es administrador.
+        if (SessionManager(this).getRole() != "Administrador") {
+            showPermissionError()
+            return
+        }
 
         api.deleteProduct(productId)
             .enqueue(
@@ -523,6 +535,14 @@ class ProductDetailActivity : AppCompatActivity() {
                     }
                 }
             )
+    }
+
+    private fun showPermissionError() {
+        Toast.makeText(
+            this,
+            "No tienes permisos para eliminar productos",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     private fun showOperationError() {
