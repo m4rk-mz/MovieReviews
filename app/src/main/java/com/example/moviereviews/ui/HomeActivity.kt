@@ -27,6 +27,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class HomeActivity : AppCompatActivity() {
 
+    companion object {
+        private const val ADD_PRODUCT_REQUEST = 101
+    }
+
     private lateinit var productsRecyclerView: RecyclerView
     private lateinit var loadingProgress: ProgressBar
     private lateinit var catalogErrorText: TextView
@@ -143,6 +147,8 @@ class HomeActivity : AppCompatActivity() {
         api =
             retrofit.create(ApiService::class.java)
 
+        setupAddProductButton(sessionManager)
+
         // Primero carga las categorías.
         loadCategories()
 
@@ -215,6 +221,43 @@ class HomeActivity : AppCompatActivity() {
             )
 
             finish()
+        }
+    }
+
+    // -------------------------
+    // ACCESO PARA AGREGAR PRODUCTOS
+    // -------------------------
+
+    private fun setupAddProductButton(sessionManager: SessionManager) {
+        if (sessionManager.getRole() != "Administrador") return
+
+        val root = findViewById<LinearLayout>(android.R.id.content).getChildAt(0) as LinearLayout
+        val addButton = Button(this).apply {
+            text = "AGREGAR PRODUCTO"
+            setTextColor(getColor(R.color.white))
+            setBackgroundResource(R.drawable.button_background)
+            backgroundTintList = null
+            setOnClickListener {
+                startActivityForResult(
+                    Intent(this@HomeActivity, AddProductActivity::class.java),
+                    ADD_PRODUCT_REQUEST
+                )
+            }
+        }
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            dp(52)
+        ).apply { bottomMargin = dp(10) }
+        root.addView(addButton, root.indexOfChild(productsRecyclerView), params)
+    }
+
+    private fun dp(value: Int): Int =
+        (value * resources.displayMetrics.density).toInt()
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == ADD_PRODUCT_REQUEST && resultCode == RESULT_OK) {
+            loadProducts(selectedCategory)
         }
     }
 
