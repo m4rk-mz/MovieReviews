@@ -323,6 +323,15 @@ class ProductDetailActivity : AppCompatActivity() {
         form.addView(descriptionInput)
         form.addView(categoryInput)
 
+        val updateProgress = ProgressBar(this).apply {
+            visibility = View.GONE
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(40)
+            ).apply { gravity = android.view.Gravity.CENTER }
+        }
+        form.addView(updateProgress)
+
         val dialog =
             AlertDialog.Builder(this)
                 .setTitle("Editar producto")
@@ -351,6 +360,7 @@ class ProductDetailActivity : AppCompatActivity() {
                 if (
                     titleInput.text.isBlank() ||
                     price == null ||
+                    price <= 0.0 ||
                     descriptionInput.text.isBlank() ||
                     categoryInput.text.isBlank()
                 ) {
@@ -381,9 +391,12 @@ class ProductDetailActivity : AppCompatActivity() {
                                 .trim()
                     )
 
+                val saveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 updateProduct(
                     updatedProduct,
-                    dialog
+                    dialog,
+                    updateProgress,
+                    saveButton
                 )
             }
         }
@@ -393,8 +406,14 @@ class ProductDetailActivity : AppCompatActivity() {
 
     private fun updateProduct(
         product: Product,
-        dialog: AlertDialog
+        dialog: AlertDialog,
+        progress: ProgressBar,
+        saveButton: Button
     ) {
+
+        progress.visibility = View.VISIBLE
+        saveButton.isEnabled = false
+        saveButton.text = "Guardando..."
 
         api.updateProduct(
             product.id,
@@ -406,6 +425,10 @@ class ProductDetailActivity : AppCompatActivity() {
                     call: Call<Product>,
                     response: Response<Product>
                 ) {
+
+                    progress.visibility = View.GONE
+                    saveButton.isEnabled = true
+                    saveButton.text = "Guardar"
 
                     if (response.isSuccessful) {
 
@@ -429,7 +452,9 @@ class ProductDetailActivity : AppCompatActivity() {
                     call: Call<Product>,
                     t: Throwable
                 ) {
-
+                    progress.visibility = View.GONE
+                    saveButton.isEnabled = true
+                    saveButton.text = "Guardar"
                     showOperationError()
                 }
             }
