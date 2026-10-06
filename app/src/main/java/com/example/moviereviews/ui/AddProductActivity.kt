@@ -1,5 +1,6 @@
 package com.example.moviereviews.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
@@ -35,8 +36,18 @@ class AddProductActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_product)
 
+        // La pantalla no debe ser accesible para Cliente o Auditor.
         if (SessionManager(this).getRole() != "Administrador") {
-            Toast.makeText(this, "Solo un administrador puede agregar productos", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                this,
+                "Solo un administrador puede agregar productos",
+                Toast.LENGTH_LONG
+            ).show()
+            startActivity(
+                Intent(this, HomeActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+            )
             finish()
             return
         }
@@ -60,26 +71,52 @@ class AddProductActivity : AppCompatActivity() {
     }
 
     private fun submitProduct() {
+        clearFieldErrors()
+
         val title = titleInput.text.toString().trim()
-        val price = priceInput.text.toString().trim().toDoubleOrNull()
+        val priceText = priceInput.text.toString().trim()
+        val price = priceText.toDoubleOrNull()
         val description = descriptionInput.text.toString().trim()
         val category = categoryInput.text.toString().trim()
         val image = imageInput.text.toString().trim()
 
-        when {
-            title.isBlank() || priceInput.text.isBlank() ||
-                description.isBlank() || category.isBlank() || image.isBlank() -> {
-                showMessage("Completa todos los campos")
-                return
-            }
-            price == null || price <= 0.0 -> {
-                showMessage("Ingresa un precio válido mayor que cero")
-                return
-            }
-            !Patterns.WEB_URL.matcher(image).matches() -> {
-                showMessage("Ingresa una URL válida para la imagen")
-                return
-            }
+        var hasErrors = false
+
+        if (title.isBlank()) {
+            titleInput.error = "Ingresa el título"
+            hasErrors = true
+        }
+
+        if (priceText.isBlank()) {
+            priceInput.error = "Ingresa el precio"
+            hasErrors = true
+        } else if (price == null || price <= 0.0) {
+            priceInput.error = "Ingresa un precio numérico mayor que cero"
+            hasErrors = true
+        }
+
+        if (description.isBlank()) {
+            descriptionInput.error = "Ingresa la descripción"
+            hasErrors = true
+        }
+
+        if (category.isBlank()) {
+            categoryInput.error = "Ingresa la categoría"
+            hasErrors = true
+        }
+
+        if (image.isBlank()) {
+            imageInput.error = "Ingresa la URL de la imagen"
+            hasErrors = true
+        } else if (!Patterns.WEB_URL.matcher(image).matches()) {
+            imageInput.error = "Ingresa una URL válida"
+            hasErrors = true
+        }
+
+        // Las validaciones terminan aquí: no se hace ninguna petición HTTP si hay errores.
+        if (hasErrors) {
+            showMessage("Corrige los campos marcados")
+            return
         }
 
         val product = ProductRequest(title, price!!, description, category, image)
@@ -92,10 +129,16 @@ class AddProductActivity : AppCompatActivity() {
             ) {
                 setLoading(false)
                 val created = response.body()
+
                 if (response.isSuccessful && created != null) {
+                    // La historia solicita limpiar el formulario después de una creación exitosa.
+                    clearForm()
+
                     AlertDialog.Builder(this@AddProductActivity)
                         .setTitle("Producto registrado")
-                        .setMessage("El producto se agregó correctamente. ID asignado: ${created.id}")
+                        .setMessage(
+                            "El producto se agregó correctamente. ID asignado: ${created.id}"
+                        )
                         .setPositiveButton("Aceptar") { _, _ ->
                             setResult(RESULT_OK)
                             finish()
@@ -112,6 +155,23 @@ class AddProductActivity : AppCompatActivity() {
                 showMessage("Error de conexión. Intenta nuevamente")
             }
         })
+    }
+
+    private fun clearForm() {
+        titleInput.text.clear()
+        priceInput.text.clear()
+        descriptionInput.text.clear()
+        categoryInput.text.clear()
+        imageInput.text.clear()
+        clearFieldErrors()
+    }
+
+    private fun clearFieldErrors() {
+        titleInput.error = null
+        priceInput.error = null
+        descriptionInput.error = null
+        categoryInput.error = null
+        imageInput.error = null
     }
 
     private fun setLoading(loading: Boolean) {
