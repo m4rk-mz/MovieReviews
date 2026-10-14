@@ -18,13 +18,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.example.moviereviews.R
 import com.example.moviereviews.api.ApiService
+import com.example.moviereviews.api.RetrofitClient
 import com.example.moviereviews.model.Product
 import com.example.moviereviews.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class ProductDetailActivity : AppCompatActivity() {
 
@@ -78,16 +77,7 @@ class ProductDetailActivity : AppCompatActivity() {
         adminActionsContainer =
             findViewById(R.id.adminActionsContainer)
 
-        val retrofit =
-            Retrofit.Builder()
-                .baseUrl("https://fakestoreapi.com/")
-                .addConverterFactory(
-                    GsonConverterFactory.create()
-                )
-                .build()
-
-        api =
-            retrofit.create(ApiService::class.java)
+        api = RetrofitClient.instance
 
         val productId =
             intent.getIntExtra(

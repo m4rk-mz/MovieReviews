@@ -11,7 +11,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.moviereviews.R
-import com.example.moviereviews.api.ApiService
+import com.example.moviereviews.api.RetrofitClient
 import com.example.moviereviews.model.LoginRequest
 import com.example.moviereviews.model.LoginResponse
 import com.example.moviereviews.session.RoleManager
@@ -20,8 +20,6 @@ import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
@@ -60,17 +58,8 @@ class MainActivity : AppCompatActivity() {
         passwordInput.startAnimation(slideUp)
         loginButton.startAnimation(fadeIn)
 
-        // Retrofit
-        val retrofit =
-            Retrofit.Builder()
-                .baseUrl("https://fakestoreapi.com/")
-                .addConverterFactory(
-                    GsonConverterFactory.create()
-                )
-                .build()
-
-        val api =
-            retrofit.create(ApiService::class.java)
+        // Cliente Retrofit centralizado para FastAPI
+        val api = RetrofitClient.instance
 
         // Botón iniciar sesión
         loginButton.setOnClickListener {
@@ -107,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Datos para Fake Store API
+            // Datos para FastAPI
             val loginRequest =
                 LoginRequest(
                     username = username,
