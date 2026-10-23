@@ -36,6 +36,15 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var api: ApiService
     private var selectedCategory: String? = null
+    private var hasLoadedCatalog = false
+
+    override fun onResume() {
+        super.onResume()
+        // Al volver del detalle, vuelve a consultar el servidor para reflejar cambios.
+        if (hasLoadedCatalog) {
+            loadProducts(selectedCategory)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -232,6 +241,7 @@ class HomeActivity : AppCompatActivity() {
                     val products = response.body()
 
                     if (response.isSuccessful && products != null) {
+                        hasLoadedCatalog = true
                         productsRecyclerView.adapter =
                             ProductAdapter(products) { product ->
                                 val intent = Intent(
