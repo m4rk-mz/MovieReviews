@@ -25,6 +25,7 @@ import com.example.moviereviews.model.CartProductRequest
 import com.example.moviereviews.model.Product
 import com.example.moviereviews.session.CartManager
 import com.example.moviereviews.session.SessionManager
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -332,20 +333,27 @@ class ProductDetailActivity : AppCompatActivity() {
 
     private fun updateProduct(product: Product, dialog: AlertDialog) {
         api.updateProduct(product.id, product).enqueue(
-            object : Callback<Product> {
-                override fun onResponse(call: Call<Product>, response: Response<Product>) {
+            object : Callback<ResponseBody> {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
                     if (response.isSuccessful) {
                         currentProduct = product
                         showProduct(product)
                         dialog.dismiss()
-                        Toast.makeText(this@ProductDetailActivity, "Producto actualizado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@ProductDetailActivity,
+                            "Producto actualizado",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     } else {
-                        showOperationError()
+                        showOperationError("editar", response.code(), response.errorBody()?.string())
                     }
                 }
 
-                override fun onFailure(call: Call<Product>, t: Throwable) {
-                    showOperationError()
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    showOperationError("editar", null, t.message)
                 }
             }
         )
@@ -366,25 +374,38 @@ class ProductDetailActivity : AppCompatActivity() {
 
     private fun deleteProduct(productId: Int) {
         api.deleteProduct(productId).enqueue(
-            object : Callback<Product> {
-                override fun onResponse(call: Call<Product>, response: Response<Product>) {
+            object : Callback<ResponseBody> {
+                override fun onResponse(
+                    call: Call<ResponseBody>,
+                    response: Response<ResponseBody>
+                ) {
                     if (response.isSuccessful) {
-                        Toast.makeText(this@ProductDetailActivity, "Producto eliminado", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            this@ProductDetailActivity,
+                            "Producto eliminado",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        setResult(RESULT_OK)
                         finish()
                     } else {
-                        showOperationError()
+                        showOperationError("eliminar", response.code(), response.errorBody()?.string())
                     }
                 }
 
-                override fun onFailure(call: Call<Product>, t: Throwable) {
-                    showOperationError()
+                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    showOperationError("eliminar", null, t.message)
                 }
             }
         )
     }
 
-    private fun showOperationError() {
-        Toast.makeText(this, "No se pudo realizar la operación", Toast.LENGTH_SHORT).show()
+    private fun showOperationError(operation: String, code: Int? = null, details: String? = null) {
+        val message = when {
+            code != null -> "No se pudo $operation (HTTP $code)"
+            !details.isNullOrBlank() -> "Error al $operation: $details"
+            else -> "No se pudo $operation. Revisa tu conexión."
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
     // -------------------------
