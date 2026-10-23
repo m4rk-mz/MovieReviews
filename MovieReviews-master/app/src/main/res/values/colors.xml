@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Paleta MovieReviews -->
+    <color name="background_light">#EAF2F8</color>
+    <color name="blue_light">#BDD4E6</color>
+    <color name="blue_medium">#89ABC7</color>
+    <color name="blue_dark">#42627C</color>
+    <color name="navy">#22344B</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="error_red">#C62828</color>
+
+</resources>
