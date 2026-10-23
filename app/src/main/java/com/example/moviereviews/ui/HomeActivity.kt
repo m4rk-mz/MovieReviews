@@ -19,6 +19,7 @@ import com.example.moviereviews.adapter.ProductAdapter
 import com.example.moviereviews.api.ApiService
 import com.example.moviereviews.api.RetrofitClient
 import com.example.moviereviews.model.Product
+import com.example.moviereviews.session.CartManager
 import com.example.moviereviews.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
@@ -42,103 +43,68 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         // Elementos de la cuenta
-        val welcomeText =
-            findViewById<TextView>(R.id.welcomeText)
-
-        val usernameText =
-            findViewById<TextView>(R.id.usernameText)
-
-        val passwordText =
-            findViewById<TextView>(R.id.passwordText)
-
-        val roleText =
-            findViewById<TextView>(R.id.roleText)
-
-        val apiCard =
-            findViewById<LinearLayout>(R.id.apiCard)
-
-        val accountCard =
-            findViewById<LinearLayout>(R.id.accountCard)
-
-        val logoutButton =
-            findViewById<Button>(R.id.logoutButton)
+        val welcomeText = findViewById<TextView>(R.id.welcomeText)
+        val usernameText = findViewById<TextView>(R.id.usernameText)
+        val passwordText = findViewById<TextView>(R.id.passwordText)
+        val roleText = findViewById<TextView>(R.id.roleText)
+        val apiCard = findViewById<LinearLayout>(R.id.apiCard)
+        val accountCard = findViewById<LinearLayout>(R.id.accountCard)
+        val logoutButton = findViewById<Button>(R.id.logoutButton)
+        val cartButton = findViewById<Button>(R.id.cartButton)
 
         // Elementos del catálogo
-        productsRecyclerView =
-            findViewById(R.id.productsRecyclerView)
-
-        loadingProgress =
-            findViewById(R.id.loadingProgress)
-
-        catalogErrorText =
-            findViewById(R.id.catalogErrorText)
-
-        retryButton =
-            findViewById(R.id.retryButton)
-
-        apiStatusText =
-            findViewById(R.id.apiStatusText)
-
-        categorySpinner =
-            findViewById(R.id.categorySpinner)
+        productsRecyclerView = findViewById(R.id.productsRecyclerView)
+        loadingProgress = findViewById(R.id.loadingProgress)
+        catalogErrorText = findViewById(R.id.catalogErrorText)
+        retryButton = findViewById(R.id.retryButton)
+        apiStatusText = findViewById(R.id.apiStatusText)
+        categorySpinner = findViewById(R.id.categorySpinner)
 
         // -------------------------
-        // SESIÓN
+        // SESIÓN Y CONTROL DE ROLES
         // -------------------------
 
-        val sessionManager =
-            SessionManager(this)
+        val sessionManager = SessionManager(this)
+        val role = sessionManager.getRole()
+        val username = intent.getStringExtra("username") ?: "Usuario"
+        val password = intent.getStringExtra("password") ?: ""
 
-        val role =
-            sessionManager.getRole()
-
-        val username =
-            intent.getStringExtra("username")
-                ?: "Usuario"
-
-        val password =
-            intent.getStringExtra("password")
-                ?: ""
-
-        welcomeText.text =
-            "Bienvenido, $username"
-
-        usernameText.text =
-            username
-
-        roleText.text =
-            role ?: "Administrador"
+        welcomeText.text = "Bienvenido, $username"
+        usernameText.text = username
+        roleText.text = role ?: "Administrador"
 
         if (password.isNotEmpty()) {
-
-            passwordText.text =
-                "•".repeat(password.length)
-
+            passwordText.text = "•".repeat(password.length)
         } else {
+            passwordText.text = "••••••••"
+        }
 
-            passwordText.text =
-                "••••••••"
+        // Ocultar botón de carrito si el rol es Auditor (US09/US10)
+        if (role == "Auditor") {
+            cartButton.visibility = View.GONE
+        } else {
+            cartButton.visibility = View.VISIBLE
+            cartButton.setOnClickListener {
+                val intent = Intent(this, CartActivity::class.java)
+                startActivity(intent)
+            }
         }
 
         // -------------------------
         // RECYCLERVIEW
         // -------------------------
 
-        productsRecyclerView.layoutManager =
-            LinearLayoutManager(this)
+        productsRecyclerView.layoutManager = LinearLayoutManager(this)
 
         // -------------------------
-        // RETROFIT (FastAPI)
+        // RETROFIT (Fake Store API)
         // -------------------------
 
         api = RetrofitClient.instance
 
-        // Primero carga las categorías.
         loadCategories()
 
-        // Reintenta la categoría seleccionada.
         retryButton.setOnClickListener {
-
             loadProducts(selectedCategory)
         }
 
@@ -146,29 +112,10 @@ class HomeActivity : AppCompatActivity() {
         // ANIMACIONES
         // -------------------------
 
-        val fadeIn =
-            AnimationUtils.loadAnimation(
-                this,
-                R.anim.fade_in
-            )
-
-        val slideUpApi =
-            AnimationUtils.loadAnimation(
-                this,
-                R.anim.slide_up
-            )
-
-        val slideUpAccount =
-            AnimationUtils.loadAnimation(
-                this,
-                R.anim.slide_up
-            )
-
-        val fadeButton =
-            AnimationUtils.loadAnimation(
-                this,
-                R.anim.fade_in
-            )
+        val fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in)
+        val slideUpApi = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        val slideUpAccount = AnimationUtils.loadAnimation(this, R.anim.slide_up)
+        val fadeButton = AnimationUtils.loadAnimation(this, R.anim.fade_in)
 
         slideUpApi.startOffset = 200
         slideUpAccount.startOffset = 450
@@ -184,26 +131,15 @@ class HomeActivity : AppCompatActivity() {
         // -------------------------
 
         logoutButton.setOnClickListener {
-
             sessionManager.clearSession()
+            CartManager.clearCart()
 
-            val intent =
-                Intent(
-                    this,
-                    MainActivity::class.java
-                )
-
-            intent.flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TASK
+            val intent = Intent(this, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
             startActivity(intent)
 
-            overridePendingTransition(
-                R.anim.fade_in,
-                R.anim.fade_out
-            )
-
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
             finish()
         }
     }
@@ -213,97 +149,60 @@ class HomeActivity : AppCompatActivity() {
     // -------------------------
 
     private fun loadCategories() {
-
         showLoading()
 
-        api.getCategories()
-            .enqueue(
-                object : Callback<List<String>> {
-
-                    override fun onResponse(
-                        call: Call<List<String>>,
-                        response: Response<List<String>>
-                    ) {
-
-                        val categories =
-                            response.body()
-
-                        if (
-                            response.isSuccessful &&
-                            categories != null
-                        ) {
-
-                            setupCategorySpinner(categories)
-
-                        } else {
-
-                            // El catálogo general puede funcionar
-                            // aunque las categorías fallen.
-                            loadProducts()
-                        }
-                    }
-
-                    override fun onFailure(
-                        call: Call<List<String>>,
-                        t: Throwable
-                    ) {
-
+        api.getCategories().enqueue(
+            object : Callback<List<String>> {
+                override fun onResponse(
+                    call: Call<List<String>>,
+                    response: Response<List<String>>
+                ) {
+                    val categories = response.body()
+                    if (response.isSuccessful && categories != null) {
+                        setupCategorySpinner(categories)
+                    } else {
                         loadProducts()
                     }
                 }
-            )
+
+                override fun onFailure(call: Call<List<String>>, t: Throwable) {
+                    loadProducts()
+                }
+            }
+        )
     }
 
     // -------------------------
     // PREPARAR FILTRO
     // -------------------------
 
-    private fun setupCategorySpinner(
-        categories: List<String>
-    ) {
+    private fun setupCategorySpinner(categories: List<String>) {
+        val options = listOf("Ver todos") + categories
 
-        val options =
-            listOf("Ver todos") + categories
-
-        val adapter =
-            ArrayAdapter(
-                this,
-                android.R.layout.simple_spinner_item,
-                options
-            )
-
-        adapter.setDropDownViewResource(
-            android.R.layout.simple_spinner_dropdown_item
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            options
         )
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
         categorySpinner.adapter = adapter
         categorySpinner.visibility = View.VISIBLE
 
         categorySpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
-
                 override fun onItemSelected(
                     parent: AdapterView<*>,
                     view: View?,
                     position: Int,
                     id: Long
                 ) {
-
-                    selectedCategory =
-                        if (position == 0) {
-                            null
-                        } else {
-                            options[position]
-                        }
-
+                    selectedCategory = if (position == 0) null else options[position]
                     loadProducts(selectedCategory)
                 }
 
-                override fun onNothingSelected(
-                    parent: AdapterView<*>
-                ) {
-                    // No se realiza ninguna acción.
-                }
+                override fun onNothingSelected(parent: AdapterView<*>) {}
             }
     }
 
@@ -311,14 +210,9 @@ class HomeActivity : AppCompatActivity() {
     // CARGAR PRODUCTOS
     // -------------------------
 
-    private fun loadProducts(
-        category: String? = null
-    ) {
-
+    private fun loadProducts(category: String? = null) {
         showLoading()
 
-        // Limpia los productos anteriores mientras
-        // se realiza la nueva petición.
         productsRecyclerView.adapter = null
 
         val request: Call<List<Product>> =
@@ -330,60 +224,33 @@ class HomeActivity : AppCompatActivity() {
 
         request.enqueue(
             object : Callback<List<Product>> {
-
                 override fun onResponse(
                     call: Call<List<Product>>,
                     response: Response<List<Product>>
                 ) {
+                    loadingProgress.visibility = View.GONE
+                    val products = response.body()
 
-                    loadingProgress.visibility =
-                        View.GONE
-
-                    val products =
-                        response.body()
-
-                    if (
-                        response.isSuccessful &&
-                        products != null
-                    ) {
-
+                    if (response.isSuccessful && products != null) {
                         productsRecyclerView.adapter =
                             ProductAdapter(products) { product ->
-
-                                val intent =
-                                    Intent(
-                                        this@HomeActivity,
-                                        ProductDetailActivity::class.java
-                                    )
-
-                                intent.putExtra(
-                                    "productId",
-                                    product.id
+                                val intent = Intent(
+                                    this@HomeActivity,
+                                    ProductDetailActivity::class.java
                                 )
-
+                                intent.putExtra("productId", product.id)
                                 startActivity(intent)
                             }
 
-                        productsRecyclerView.visibility =
-                            View.VISIBLE
-
-                        apiStatusText.text =
-                            "●  Conectado"
-
+                        productsRecyclerView.visibility = View.VISIBLE
+                        apiStatusText.text = "●  Conectado"
                     } else {
-
                         showCatalogError()
                     }
                 }
 
-                override fun onFailure(
-                    call: Call<List<Product>>,
-                    t: Throwable
-                ) {
-
-                    loadingProgress.visibility =
-                        View.GONE
-
+                override fun onFailure(call: Call<List<Product>>, t: Throwable) {
+                    loadingProgress.visibility = View.GONE
                     showCatalogError()
                 }
             }
@@ -391,46 +258,22 @@ class HomeActivity : AppCompatActivity() {
     }
 
     // -------------------------
-    // ESTADO DE CARGA
+    // ESTADO DE CARGA Y ERROR
     // -------------------------
 
     private fun showLoading() {
-
-        loadingProgress.visibility =
-            View.VISIBLE
-
-        catalogErrorText.visibility =
-            View.GONE
-
-        retryButton.visibility =
-            View.GONE
-
-        productsRecyclerView.visibility =
-            View.GONE
-
-        apiStatusText.text =
-            "●  Conectando..."
+        loadingProgress.visibility = View.VISIBLE
+        catalogErrorText.visibility = View.GONE
+        retryButton.visibility = View.GONE
+        productsRecyclerView.visibility = View.GONE
+        apiStatusText.text = "●  Conectando..."
     }
 
-    // -------------------------
-    // ERROR DEL CATÁLOGO
-    // -------------------------
-
     private fun showCatalogError() {
-
-        apiStatusText.text =
-            "●  Sin conexión"
-
-        productsRecyclerView.visibility =
-            View.GONE
-
-        catalogErrorText.text =
-            "No se pudo cargar el catálogo"
-
-        catalogErrorText.visibility =
-            View.VISIBLE
-
-        retryButton.visibility =
-            View.VISIBLE
+        apiStatusText.text = "●  Sin conexión"
+        productsRecyclerView.visibility = View.GONE
+        catalogErrorText.text = "No se pudo cargar el catálogo"
+        catalogErrorText.visibility = View.VISIBLE
+        retryButton.visibility = View.VISIBLE
     }
 }
