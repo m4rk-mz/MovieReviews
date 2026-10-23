@@ -5,6 +5,7 @@ import com.example.moviereviews.model.AddToCartResponse
 import com.example.moviereviews.model.LoginRequest
 import com.example.moviereviews.model.LoginResponse
 import com.example.moviereviews.model.Product
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -59,10 +60,10 @@ interface ApiService {
     fun updateProduct(
         @Path("id") id: Int,
         @Body product: Product
-    ): Call<Product>
+    ): Call<ResponseBody>
 
     @DELETE("products/{id}")
     fun deleteProduct(
         @Path("id") id: Int
-    ): Call<Product>
+    ): Call<ResponseBody>
 }
