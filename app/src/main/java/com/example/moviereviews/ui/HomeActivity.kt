@@ -102,6 +102,8 @@ class HomeActivity : AppCompatActivity() {
 
         api = RetrofitClient.instance
 
+        categorySpinner.visibility = View.VISIBLE
+        setupCategorySpinner(emptyList())
         loadCategories()
 
         retryButton.setOnClickListener {
@@ -161,12 +163,12 @@ class HomeActivity : AppCompatActivity() {
                     if (response.isSuccessful && categories != null) {
                         setupCategorySpinner(categories)
                     } else {
-                        loadProducts()
+                        setupCategorySpinner(fallbackCategories)
                     }
                 }
 
                 override fun onFailure(call: Call<List<String>>, t: Throwable) {
-                    loadProducts()
+                    setupCategorySpinner(fallbackCategories)
                 }
             }
         )
@@ -175,6 +177,13 @@ class HomeActivity : AppCompatActivity() {
     // -------------------------
     // PREPARAR FILTRO
     // -------------------------
+
+    private val fallbackCategories = listOf(
+        "electronics",
+        "jewelery",
+        "men's clothing",
+        "women's clothing"
+    )
 
     private fun setupCategorySpinner(categories: List<String>) {
         val options = listOf("Ver todos") + categories
