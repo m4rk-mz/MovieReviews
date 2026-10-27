@@ -224,14 +224,9 @@ class HomeActivity : AppCompatActivity() {
 
         productsRecyclerView.adapter = null
 
-        val request: Call<List<Product>> =
-            if (category == null) {
-                api.getProducts()
-            } else {
-                api.getProductsByCategory(category)
-            }
-
-        request.enqueue(
+        // Descargamos todos los productos y filtramos localmente.
+        // Así el filtro funciona aunque el backend no tenga la ruta por categoría.
+        api.getProducts().enqueue(
             object : Callback<List<Product>> {
                 override fun onResponse(
                     call: Call<List<Product>>,
@@ -241,8 +236,16 @@ class HomeActivity : AppCompatActivity() {
                     val products = response.body()
 
                     if (response.isSuccessful && products != null) {
+                        val filteredProducts = if (category.isNullOrBlank()) {
+                            products
+                        } else {
+                            products.filter {
+                                it.category.trim().equals(category.trim(), ignoreCase = true)
+                            }
+                        }
+
                         productsRecyclerView.adapter =
-                            ProductAdapter(products) { product ->
+                            ProductAdapter(filteredProducts) { product ->
                                 val intent = Intent(
                                     this@HomeActivity,
                                     ProductDetailActivity::class.java
