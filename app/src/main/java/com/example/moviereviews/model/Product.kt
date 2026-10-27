@@ -1,4 +1,4 @@
-Product.ktpackage com.example.moviereviews.model
+package com.example.moviereviews.model
 
 data class Product(
     val id: Int,
