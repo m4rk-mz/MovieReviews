@@ -31,7 +31,7 @@ class UsersActivity : AppCompatActivity() {
 
         val session = SessionManager(this)
         val role = session.getRole()
-        if (session.getToken().isNullOrBlank() || role !in listOf("Administrador", "Auditor")) {
+        if (session.getToken().isNullOrBlank() || role != "Administrador" && role != "Auditor") {
             Toast.makeText(this, "No tienes permiso para consultar usuarios", Toast.LENGTH_SHORT).show()
             finish()
             return
