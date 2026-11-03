@@ -2,9 +2,11 @@ package com.example.moviereviews.api
 
 import com.example.moviereviews.model.AddToCartRequest
 import com.example.moviereviews.model.AddToCartResponse
+import com.example.moviereviews.model.CartHistory
 import com.example.moviereviews.model.LoginRequest
 import com.example.moviereviews.model.LoginResponse
 import com.example.moviereviews.model.Product
+import com.example.moviereviews.model.User
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
@@ -22,7 +24,7 @@ interface ApiService {
         @Body request: LoginRequest
     ): Call<LoginResponse>
 
-    // Carrito (US09 y US10)
+    // Carrito personal (US09 y US10)
     @POST("carts")
     fun addToCart(
         @Body request: AddToCartRequest
@@ -38,6 +40,10 @@ interface ApiService {
     fun deleteCart(
         @Path("id") id: Int
     ): Call<AddToCartResponse>
+
+    // US12: consulta global de carritos (solo lectura)
+    @GET("carts")
+    fun getAllCarts(): Call<List<CartHistory>>
 
     // Catálogo
     @GET("products")
@@ -55,6 +61,10 @@ interface ApiService {
     fun getProduct(
         @Path("id") id: Int
     ): Call<Product>
+
+    // US11: directorio global de usuarios (solo lectura)
+    @GET("users")
+    fun getUsers(): Call<List<User>>
 
     @PUT("products/{id}")
     fun updateProduct(
