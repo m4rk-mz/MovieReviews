@@ -15,6 +15,12 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/Theme.MovieReviews">
 
+        <activity
+            android:name=".ui.UsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.GlobalCartsActivity"
+            android:exported="false" />
         <activity android:name=".ui.CartActivity" />
         <activity android:name=".ui.ProductDetailActivity" />
         <activity android:name=".ui.HomeActivity" />
