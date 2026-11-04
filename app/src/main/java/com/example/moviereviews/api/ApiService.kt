@@ -24,31 +24,21 @@ interface ApiService {
         @Body request: LoginRequest
     ): Call<LoginResponse>
 
-    // Carrito (US09 y US10)
+    // Carrito (US09): se registra el carrito completo al finalizar la compra.
     @POST("carts")
     fun addToCart(
+        @Header("Authorization") authorization: String,
         @Body request: AddToCartRequest
-    ): Call<AddToCartResponse>
-
-    @PUT("carts/{id}")
-    fun updateCart(
-        @Path("id") id: Int,
-        @Body request: AddToCartRequest
-    ): Call<AddToCartResponse>
-
-    @DELETE("carts/{id}")
-    fun deleteCart(
-        @Path("id") id: Int
     ): Call<AddToCartResponse>
 
     // US11: listar usuarios registrados (requiere token de Administrador o Auditor).
-    @GET("users")
+    @GET("admin/users")
     fun getUsers(
         @Header("Authorization") authorization: String
     ): Call<List<User>>
 
     // US12: consultar el histórico global de carritos (solo lectura).
-    @GET("carts")
+    @GET("admin/carts")
     fun getAllCarts(
         @Header("Authorization") authorization: String
     ): Call<List<CartHistory>>
