@@ -51,6 +51,9 @@ class HomeActivity : AppCompatActivity() {
         val accountCard = findViewById<LinearLayout>(R.id.accountCard)
         val logoutButton = findViewById<Button>(R.id.logoutButton)
         val cartButton = findViewById<Button>(R.id.cartButton)
+        val adminAuditMenu = findViewById<LinearLayout>(R.id.adminAuditMenu)
+        val usersButton = findViewById<Button>(R.id.usersButton)
+        val globalCartsButton = findViewById<Button>(R.id.globalCartsButton)
 
         // Elementos del catálogo
         productsRecyclerView = findViewById(R.id.productsRecyclerView)
