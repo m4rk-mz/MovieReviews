@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/admin_card_background"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/historyCartId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Carrito #0"
+        android:textColor="@color/navy"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/historyCartDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="Fecha"
+        android:textColor="@color/navy"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/historyCartUser"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Usuario propietario"
+        android:textColor="@color/navy"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/historyExpandButton"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_background"
+        android:backgroundTint="@null"
+        android:text="VER ARTÍCULOS"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/historyProductsDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/navy"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</LinearLayout>
