@@ -51,6 +51,9 @@ class HomeActivity : AppCompatActivity() {
         val accountCard = findViewById<LinearLayout>(R.id.accountCard)
         val logoutButton = findViewById<Button>(R.id.logoutButton)
         val cartButton = findViewById<Button>(R.id.cartButton)
+        val adminAuditMenu = findViewById<LinearLayout>(R.id.adminAuditMenu)
+        val usersButton = findViewById<Button>(R.id.usersButton)
+        val globalCartsButton = findViewById<Button>(R.id.globalCartsButton)
 
         // Elementos del catálogo
         productsRecyclerView = findViewById(R.id.productsRecyclerView)
@@ -71,7 +74,19 @@ class HomeActivity : AppCompatActivity() {
 
         welcomeText.text = "Bienvenido, $username"
         usernameText.text = username
-        roleText.text = role ?: "Administrador"
+        roleText.text = role ?: "Sin rol"
+
+        // US11 y US12: mostrar consultas globales a Administrador y Auditor.
+        val canAudit = role == "Administrador" || role == "Auditor"
+        adminAuditMenu.visibility = if (canAudit) View.VISIBLE else View.GONE
+        if (canAudit) {
+            usersButton.setOnClickListener {
+                startActivity(Intent(this, UsersActivity::class.java))
+            }
+            globalCartsButton.setOnClickListener {
+                startActivity(Intent(this, GlobalCartsActivity::class.java))
+            }
+        }
 
         if (password.isNotEmpty()) {
             passwordText.text = "•".repeat(password.length)
