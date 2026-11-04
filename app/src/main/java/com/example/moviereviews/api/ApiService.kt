@@ -5,6 +5,8 @@ import com.example.moviereviews.model.AddToCartResponse
 import com.example.moviereviews.model.LoginRequest
 import com.example.moviereviews.model.LoginResponse
 import com.example.moviereviews.model.Product
+import com.example.moviereviews.model.User
+import com.example.moviereviews.model.CartHistory
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -12,6 +14,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Header
 
 interface ApiService {
 
@@ -37,6 +40,18 @@ interface ApiService {
     fun deleteCart(
         @Path("id") id: Int
     ): Call<AddToCartResponse>
+
+    // US11: listar usuarios registrados (requiere token de Administrador o Auditor).
+    @GET("users")
+    fun getUsers(
+        @Header("Authorization") authorization: String
+    ): Call<List<User>>
+
+    // US12: consultar el histórico global de carritos (solo lectura).
+    @GET("carts")
+    fun getAllCarts(
+        @Header("Authorization") authorization: String
+    ): Call<List<CartHistory>>
 
     // Catálogo
     @GET("products")
