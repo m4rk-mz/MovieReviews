@@ -19,18 +19,12 @@ import com.bumptech.glide.Glide
 import com.example.moviereviews.R
 import com.example.moviereviews.api.ApiService
 import com.example.moviereviews.api.RetrofitClient
-import com.example.moviereviews.model.AddToCartRequest
-import com.example.moviereviews.model.AddToCartResponse
-import com.example.moviereviews.model.CartProductRequest
 import com.example.moviereviews.model.Product
 import com.example.moviereviews.session.CartManager
 import com.example.moviereviews.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class ProductDetailActivity : AppCompatActivity() {
 
@@ -179,43 +173,9 @@ class ProductDetailActivity : AppCompatActivity() {
     }
 
     private fun executeAddToCart(product: Product, quantity: Int) {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val cartRequest = AddToCartRequest(
-            userId = 1,
-            date = currentDate,
-            products = listOf(CartProductRequest(productId = product.id, quantity = quantity))
-        )
-
-        // Escenario 1: Petición POST /carts y guardado en memoria local
-        api.addToCart(cartRequest).enqueue(
-            object : Callback<AddToCartResponse> {
-                override fun onResponse(
-                    call: Call<AddToCartResponse>,
-                    response: Response<AddToCartResponse>
-                ) {
-                    // Escenario 2: CartManager se encarga de no duplicar y sumar la cantidad
-                    CartManager.addToCart(product, quantity)
-                    Toast.makeText(
-                        this@ProductDetailActivity,
-                        "Producto añadido al carrito",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-
-                override fun onFailure(
-                    call: Call<AddToCartResponse>,
-                    t: Throwable
-                ) {
-                    // Guardado local de respaldo si falla la red
-                    CartManager.addToCart(product, quantity)
-                    Toast.makeText(
-                        this@ProductDetailActivity,
-                        "Producto añadido al carrito (Modo local)",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        )
+        // El carrito se guarda en memoria local y se registra en el backend al finalizar la compra (CartActivity).
+        CartManager.addToCart(product, quantity)
+        Toast.makeText(this, "Producto añadido al carrito", Toast.LENGTH_SHORT).show()
     }
 
     // -------------------------

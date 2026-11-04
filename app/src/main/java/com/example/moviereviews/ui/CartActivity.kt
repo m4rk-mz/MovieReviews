@@ -18,6 +18,7 @@ import com.example.moviereviews.model.AddToCartResponse
 import com.example.moviereviews.model.CartItem
 import com.example.moviereviews.model.CartProductRequest
 import com.example.moviereviews.session.CartManager
+import com.example.moviereviews.session.SessionManager
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -51,6 +52,7 @@ class CartActivity : AppCompatActivity() {
         api = RetrofitClient.instance
 
         cartBackButton.setOnClickListener { finish() }
+        checkoutButton.setOnClickListener { checkout() }
 
         setupRecyclerView()
         updateCartState()
@@ -68,7 +70,7 @@ class CartActivity : AppCompatActivity() {
         cartRecyclerView.adapter = cartAdapter
     }
 
-    // Actualizar o modificar cantidad (Escenario 1)
+    // Actualizar o modificar cantidad (Escenario 1). Solo local; se registra al finalizar la compra.
     private fun changeQuantity(item: CartItem, newQuantity: Int) {
         if (newQuantity <= 0) {
             removeItem(item)
@@ -76,14 +78,12 @@ class CartActivity : AppCompatActivity() {
         }
 
         CartManager.updateQuantity(item.product.id, newQuantity)
-        executePutApi(item.product.id, newQuantity)
         updateCartState()
     }
 
-    // Remoción de producto (Escenario 2)
+    // Remoción de producto (Escenario 2). Solo local; se registra al finalizar la compra.
     private fun removeItem(item: CartItem) {
         CartManager.removeItem(item.product.id)
-        executeDeleteApi(item.product.id)
         updateCartState()
     }
 
@@ -110,26 +110,45 @@ class CartActivity : AppCompatActivity() {
         }
     }
 
-    // Consumo del endpoint PUT /carts/{id} (Escenario 1)
-    private fun executePutApi(productId: Int, quantity: Int) {
+    // Finalizar compra: registra el carrito completo en POST /carts con el usuario de la sesión.
+    private fun checkout() {
+        val session = SessionManager(this)
+        val token = session.getToken()
+        val userId = session.getUserId()
+
+        if (token == null || userId == -1) {
+            Toast.makeText(this, "Inicia sesión para finalizar la compra", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val items = CartManager.getCartItems()
+        if (items.isEmpty()) return
+
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val request = AddToCartRequest(
-            userId = 1,
+            userId = userId,
             date = currentDate,
-            products = listOf(CartProductRequest(productId = productId, quantity = quantity))
+            products = items.map { CartProductRequest(productId = it.product.id, quantity = it.quantity) }
         )
 
-        api.updateCart(productId, request).enqueue(object : Callback<AddToCartResponse> {
-            override fun onResponse(call: Call<AddToCartResponse>, response: Response<AddToCartResponse>) {}
-            override fun onFailure(call: Call<AddToCartResponse>, t: Throwable) {}
-        })
-    }
+        checkoutButton.isEnabled = false
 
-    // Consumo del endpoint DELETE /carts/{id} (Escenario 2)
-    private fun executeDeleteApi(productId: Int) {
-        api.deleteCart(productId).enqueue(object : Callback<AddToCartResponse> {
-            override fun onResponse(call: Call<AddToCartResponse>, response: Response<AddToCartResponse>) {}
-            override fun onFailure(call: Call<AddToCartResponse>, t: Throwable) {}
+        api.addToCart("Bearer $token", request).enqueue(object : Callback<AddToCartResponse> {
+            override fun onResponse(call: Call<AddToCartResponse>, response: Response<AddToCartResponse>) {
+                if (response.isSuccessful) {
+                    CartManager.clearCart()
+                    updateCartState()
+                    Toast.makeText(this@CartActivity, "Compra registrada", Toast.LENGTH_SHORT).show()
+                } else {
+                    checkoutButton.isEnabled = true
+                    Toast.makeText(this@CartActivity, "No se pudo registrar la compra", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<AddToCartResponse>, t: Throwable) {
+                checkoutButton.isEnabled = true
+                Toast.makeText(this@CartActivity, "Sin conexión: la compra no se registró", Toast.LENGTH_SHORT).show()
+            }
         })
     }
 }
